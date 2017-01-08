@@ -52,33 +52,25 @@ def load_training_data():
     return all
 
 
-def load_bin_vec(fname, vocab):
+def load_bin_vec(fname, chars):
     """
-    Loads 400x1 word vecs from Google (Mikolov) word2vec
-    从GoogleNews-vectors-negative300.bin中加载w2v矩阵。生成w2v。w2v是一个dict，key是word，value是vector。
+    加载 400x1 自训练的char2vecs。
+    char2vecs是一个dict，key是word，value是vector。
     """
-    word_vecs = {}
+    char2vecs = {}
     with open(fname, "rb") as f:
         header = f.readline()
-        # vocab_size是word的个数, layer1_size是word2vec的维度
-        vocab_size, layer1_size = map(int, header.split())
-        # binary_len是word2vec的字节数
-        binary_len = np.dtype('float32').itemsize * layer1_size
-        for line in xrange(vocab_size):
-            word = []
-            while True:
-                ch = f.read(1)
-                if ch == ' ':
-                    word = ''.join(word)
-                    break
-                if ch != '\n':
-                    word.append(ch)
-            # 只读取数据集中出现的word的word2vec
-            if word in vocab:
-                word_vecs[word] = np.fromstring(f.read(binary_len), dtype='float32')
+        char_num, vector_dim = map(int, header.split())
+        # binary_len是char2vec的字节数
+        binary_len = np.dtype('float32').itemsize * vector_dim
+        for line in xrange(char_num):
+            ch = f.read(3)
+            # 只读取数据集中出现的char的char2vec
+            if ch in chars:
+                char2vecs[ch] = np.fromstring(f.read(binary_len), dtype='float32')
             else:
                 f.read(binary_len)
-    return word_vecs
+    return char2vecs
 
 
 def print_train_example():
