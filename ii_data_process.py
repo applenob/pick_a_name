@@ -6,6 +6,7 @@
 import numpy as np
 import os
 import cPickle as pickle
+import random
 
 
 def load_training_data():
@@ -52,6 +53,52 @@ def load_training_data():
     return all
 
 
+def load_sample_training_data():
+    """(缩小数据集)从pkl加载训练数据，无则通过语料生成"""
+    SAMPLE_RATE = 0.1
+    LEAST_NUM = 250
+
+    # 尝试加载pkl
+    train_pkl_name = "training_data/train_sample.pkl"
+    if os.path.exists(train_pkl_name):
+        with open(train_pkl_name, 'rb') as f:
+            return pickle.load(f)
+
+    # 读取原始语料文件
+    print "Reading PKL Files ..."
+    raw_pkl_name = "data/detail_data.pkl"
+    with open(raw_pkl_name, 'rb') as f:
+        data = pickle.load(f)
+    names = []
+    chars = set()
+    for datum in data:
+        sample_num = min(datum["num"], max(int(datum["num"]*SAMPLE_RATE), LEAST_NUM))
+        # print sample_num
+        sample_names = random.sample(datum["names"], sample_num)
+        for name in sample_names:
+            names.append(name)
+            for one in name:
+                chars.add(one)
+    print "Parsed %d names." % (len(names))
+    # generate char_to_index and index_to_char
+    char_to_index = {}
+    i = 0
+    for char in chars:
+        char_to_index[char] = i
+        i += 1
+    index_to_char = dict([(char_to_index[c], c) for c in char_to_index])
+
+    # Create the training data
+    X_train = np.asarray([[char_to_index[c] for c in name[:-1]] for name in names])
+    y_train = np.asarray([[char_to_index[c] for c in name[1:]] for name in names])
+
+    # 保存到pkl
+    all = [X_train, y_train, char_to_index, index_to_char]
+    with open(train_pkl_name, "wb") as f:
+        pickle.dump(all, f)
+    return all
+
+
 def load_bin_vec(fname, chars):
     """
     加载 400x1 自训练的char2vecs。
@@ -75,7 +122,7 @@ def load_bin_vec(fname, chars):
 
 def print_train_example():
     """查看部分训练数据"""
-    X_train, y_train, char_to_index, index_to_char = load_training_data()
+    X_train, y_train, char_to_index, index_to_char = load_sample_training_data()
     x_example, y_example = X_train[17], y_train[17]
     print
     print "x:\n%s\n%s" % (" ".join([index_to_char[x] for x in x_example]), x_example)

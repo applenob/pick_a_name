@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 from utils import *
 from rnn_theano import RNNTheano
-from ii_data_process import load_training_data
+from ii_data_process import load_training_data, load_sample_training_data
 
 _VOCABULARY_SIZE = int(os.environ.get('VOCABULARY_SIZE', '8000'))
 _HIDDEN_DIM = int(os.environ.get('HIDDEN_DIM', '80'))
@@ -46,14 +46,10 @@ def train_with_sgd(model, X_train, y_train, learning_rate=0.005, nepoch=1, evalu
             num_examples_seen += 1
 
 if __name__ == '__main__':
-    X_train, y_train, char_to_index, index_to_char = load_training_data()
+    X_train, y_train, char_to_index, index_to_char = load_sample_training_data()
     char_num = len(char_to_index.keys())
 
     vocabulary_size = char_num
-    unknown_token = "UNKNOWN_TOKEN"
-    name_start_token = "NAME_START"
-    name_end_token = "NAME_END"
-
     model = RNNTheano(vocabulary_size, hidden_dim=_HIDDEN_DIM)
     t1 = time.time()
     model.sgd_step(X_train[10], y_train[10], _LEARNING_RATE)
@@ -63,4 +59,4 @@ if __name__ == '__main__':
     if _MODEL_FILE != None:
         load_model_parameters_theano(_MODEL_FILE, model)
 
-    train_with_sgd(model, X_train[:10000], y_train[:10000], nepoch=_NEPOCH, learning_rate=_LEARNING_RATE)
+    train_with_sgd(model, X_train, y_train, nepoch=_NEPOCH, learning_rate=_LEARNING_RATE)
