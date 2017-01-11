@@ -46,7 +46,8 @@ def train_with_sgd(model, X_train, y_train, learning_rate=0.005, nepoch=1, evalu
             num_examples_seen += 1
 
 if __name__ == '__main__':
-    X_train, y_train, char_to_index, index_to_char = load_sample_training_data()
+    # X_train, y_train, char_to_index, index_to_char = load_sample_training_data()
+    X_train, y_train, char_to_index, index_to_char = load_training_data()
     char_num = len(char_to_index.keys())
 
     vocabulary_size = char_num

@@ -29,7 +29,8 @@ if __name__ == '__main__':
 
     name_num = 10
     name_len = 3
-    first_name = u"宋"
+    # first_name = u"宋"
+    first_name = u"陈"
     if first_name not in char_to_index:
         print "暂时不支持这个姓，Sorry！！！"
     else:
