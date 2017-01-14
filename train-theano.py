@@ -16,8 +16,8 @@ from ii_data_process import load_training_data, load_sample_training_data
 _VOCABULARY_SIZE = int(os.environ.get('VOCABULARY_SIZE', '8000'))
 _HIDDEN_DIM = int(os.environ.get('HIDDEN_DIM', '80'))
 _LEARNING_RATE = float(os.environ.get('LEARNING_RATE', '0.005'))
-_NEPOCH = int(os.environ.get('NEPOCH', '20'))
-_MODEL_FILE = os.environ.get('MODEL_FILE')
+_NEPOCH = int(os.environ.get('NEPOCH', '100'))
+_MODEL_FILE = os.environ.get('MODEL_FILE', "model/model-80-5264-2017-01-14-16-47-15.npz")
 
 
 def train_with_sgd(model, X_train, y_train, learning_rate=0.005, nepoch=1, evaluate_loss_after=5):
@@ -46,8 +46,8 @@ def train_with_sgd(model, X_train, y_train, learning_rate=0.005, nepoch=1, evalu
             num_examples_seen += 1
 
 if __name__ == '__main__':
-    # X_train, y_train, char_to_index, index_to_char = load_sample_training_data()
-    X_train, y_train, char_to_index, index_to_char = load_training_data()
+    X_train, y_train, char_to_index, index_to_char = load_sample_training_data(1)
+    # X_train, y_train, char_to_index, index_to_char = load_training_data()
     char_num = len(char_to_index.keys())
 
     vocabulary_size = char_num

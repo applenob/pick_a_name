@@ -53,20 +53,20 @@ def load_training_data():
     return all
 
 
-def load_sample_training_data():
+def load_sample_training_data(type):
     """(缩小数据集)从pkl加载训练数据，无则通过语料生成"""
-    SAMPLE_RATE = 0.1
+    SAMPLE_RATE = 0.2
     LEAST_NUM = 250
 
     # 尝试加载pkl
-    train_pkl_name = "training_data/train_sample.pkl"
+    train_pkl_name = "training_data/"+str(type)+"_train_sample.pkl"
     if os.path.exists(train_pkl_name):
         with open(train_pkl_name, 'rb') as f:
             return pickle.load(f)
 
     # 读取原始语料文件
     print "Reading PKL Files ..."
-    raw_pkl_name = "data/detail_data.pkl"
+    raw_pkl_name = "data/"+str(type)+"_detail_data.pkl"
     with open(raw_pkl_name, 'rb') as f:
         data = pickle.load(f)
     names = []

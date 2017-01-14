@@ -3,6 +3,16 @@ import theano as theano
 import theano.tensor as T
 from utils import *
 import operator
+from scipy.misc import logsumexp
+
+
+def log_softmax(vec):
+    return vec - logsumexp(vec)
+
+
+def softmax(vec):
+    return np.exp(log_softmax(vec))
+
 
 class RNNTheano:
     
@@ -66,7 +76,8 @@ class RNNTheano:
     def calculate_loss(self, X, Y):
         # Divide calculate_loss by the number of words
         num_words = np.sum([len(y) for y in Y])
-        return self.calculate_total_loss(X,Y)/float(num_words)   
+        return self.calculate_total_loss(X,Y)/float(num_words)
+
 
 
 def gradient_check_theano(model, x, y, h=0.001, error_threshold=0.01):
