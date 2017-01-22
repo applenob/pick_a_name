@@ -1,3 +1,8 @@
+# coding=utf-8
+"""
+GRU (随机初始化c2v) 实现，以及模型训练
+most of the code is modified from https://github.com/dennybritz/rnn-tutorial-gru-lstm
+"""
 import numpy as np
 import theano as theano
 import theano.tensor as T
@@ -13,9 +18,9 @@ from ii_data_process import load_training_data, load_sample_training_data
 LEARNING_RATE = 0.001
 EMBEDDING_DIM = 48
 HIDDEN_DIM = 128
-NEPOCH = 20
-MODEL_OUTPUT_FILE = "model/gru_c2v/model-80-5264-2017-01-14-16-47-15.npz"
-PRINT_EVERY = 25000
+NEPOCH = 100
+PRINT_EVERY = 100000
+MODEL_FILE = "model/gru_c2v/GRU-2017-01-21-15-08-5264-48-128.dat.npz"
 
 
 class GRUTheano:
@@ -121,7 +126,7 @@ class GRUTheano:
         mc = decay * self.mc + (1 - decay) * dc ** 2
 
         self.sgd_step = theano.function(
-            [x, y, learning_rate, theano.Param(decay, default=0.9)],
+            [x, y, learning_rate, theano.In(decay, value=0.9)],
             [],
             updates=[(E, E - learning_rate * dE / T.sqrt(mE + 1e-6)),
                      (U, U - learning_rate * dU / T.sqrt(mU + 1e-6)),
@@ -172,13 +177,12 @@ def save_model_parameters_theano(model, outfile):
     print "Saved model parameters to %s." % outfile
 
 
-def load_model_parameters_theano(path, modelClass=GRUTheano):
+def load_model_parameters_theano(path, model):
     npzfile = np.load(path)
     E, U, W, V, b, c = npzfile["E"], npzfile["U"], npzfile["W"], npzfile["V"], npzfile["b"], npzfile["c"]
     hidden_dim, word_dim = E.shape[0], E.shape[1]
     print "Building model model from %s with hidden_dim=%d word_dim=%d" % (path, hidden_dim, word_dim)
     sys.stdout.flush()
-    model = modelClass(word_dim, hidden_dim=hidden_dim)
     model.E.set_value(E)
     model.U.set_value(U)
     model.W.set_value(W)
@@ -238,15 +242,14 @@ if __name__ == '__main__':
     # Load data
     X_train, y_train, char_to_index, index_to_char = load_sample_training_data(1)
     VOCABULARY_SIZE = len(char_to_index.keys())
-    if not MODEL_OUTPUT_FILE:
-        ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        MODEL_OUTPUT_FILE = "GRU-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
-
 
     # Build model
     model = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
-
+    if MODEL_FILE:
+        print "loading pretrained model ..."
+        load_model_parameters_theano(MODEL_FILE, model)
     # Print SGD step time
+    print "test sgd step ..."
     t1 = time.time()
     model.sgd_step(X_train[10], y_train[10], LEARNING_RATE)
     t2 = time.time()
@@ -256,13 +259,16 @@ if __name__ == '__main__':
     # We do this every few examples to understand what's going on
     def sgd_callback(model, num_examples_seen):
         dt = datetime.now().isoformat()
-        loss = model.calculate_loss(X_train[:10000], y_train[:10000])
-        print("\n%s (%d)" % (dt, num_examples_seen))
-        print("--------------------------------------------------")
-        print("Loss: %f" % loss)
-        save_model_parameters_theano(model, MODEL_OUTPUT_FILE)
-        print("\n")
+        loss = model.calculate_loss(X_train, y_train)
+        print "\n%s (%d)" % (dt, num_examples_seen)
+        print "--------------------------------------------------"
+        print "Loss: %f" % loss
+        ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
+        model_output_file = "model/gru_c2v/GRU-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
+        save_model_parameters_theano(model, model_output_file)
+        print "\n"
         sys.stdout.flush()
     for epoch in range(NEPOCH):
+        print "training epoch :", epoch
         train_with_sgd(model, X_train, y_train, learning_rate=LEARNING_RATE, nepoch=1, decay=0.9,
                        callback_every=PRINT_EVERY, callback=sgd_callback)

@@ -66,8 +66,8 @@ class RNNTheano:
         dW = T.grad(o_error, W)
 
         # Assign functions
-        self.forward_propagation = theano.function([x], o)
-        self.predict = theano.function([x], prediction)
+        self.predict = theano.function([x], o)
+        self.predict_class = theano.function([x], prediction)
         self.ce_error = theano.function([x, y], o_error)
         self.bptt = theano.function([x, y], [dU, dV, dW])
 

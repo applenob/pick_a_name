@@ -82,7 +82,7 @@ def load_sample_training_data(type):
     print "Parsed %d names." % (len(names))
     # generate char_to_index and index_to_char
     char_to_index = {}
-    i = 0
+    i = 1
     for char in chars:
         char_to_index[char] = i
         i += 1
@@ -99,7 +99,7 @@ def load_sample_training_data(type):
     return all
 
 
-def load_bin_vec(fname, chars):
+def load_bin_vec(fname):
     """
     加载 400x1 自训练的char2vecs。
     char2vecs是一个dict，key是word，value是vector。
@@ -108,25 +108,46 @@ def load_bin_vec(fname, chars):
     with open(fname, "rb") as f:
         header = f.readline()
         char_num, vector_dim = map(int, header.split())
+        print char_num, vector_dim
         # binary_len是char2vec的字节数
         binary_len = np.dtype('float32').itemsize * vector_dim
         for line in xrange(char_num):
             ch = f.read(3)
-            # 只读取数据集中出现的char的char2vec
-            if ch in chars:
-                char2vecs[ch] = np.fromstring(f.read(binary_len), dtype='float32')
-            else:
-                f.read(binary_len)
+            char2vecs[ch] = np.fromstring(f.read(binary_len), dtype='float32')
     return char2vecs
+
+
+def get_W(char_to_index, index_to_char, k=400):
+    """
+    接收c2v，相当于把c2v从字典转换成矩阵W。
+    相当于原来从char到vector只用查阅c2v字典；
+    现在需要先从char_to_index查阅word的索引，再用char的索引到W矩阵获取vector。
+    """
+    char2vecs = load_bin_vec("vector/wiki.cn.text.jian.vector")
+    print char2vecs
+    vocab_size = len(char2vecs)
+    print vocab_size
+    W = np.zeros(shape=(vocab_size+1, k), dtype='float32')
+    W[0] = np.zeros(k, dtype='float32')
+    i = 1
+    for char in char_to_index:
+        if char in char2vecs:
+            W[i] = char2vecs[char][:k]
+        else:
+            W[i] = np.random.uniform(-1, 1, (k,))
+        i += 1
+    return W
 
 
 def print_train_example():
     """查看部分训练数据"""
-    X_train, y_train, char_to_index, index_to_char = load_sample_training_data()
+    X_train, y_train, char_to_index, index_to_char = load_sample_training_data(0)
     x_example, y_example = X_train[17], y_train[17]
     print
     print "x:\n%s\n%s" % (" ".join([index_to_char[x] for x in x_example]), x_example)
     print "\ny:\n%s\n%s" % (" ".join([index_to_char[y] for y in y_example]), y_example)
 
 if __name__ == '__main__':
-    print_train_example()
+    # print_train_example()
+    X_train, y_train, char_to_index, index_to_char = load_sample_training_data(0)
+    get_W(char_to_index, index_to_char, k=300)
