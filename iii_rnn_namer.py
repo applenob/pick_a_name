@@ -7,6 +7,7 @@
 
 import iv_rnn_one_hot as rnn
 import v_gru_c2v as gru
+import vi_lstm_c2v as lstm
 from ii_data_process import load_training_data, load_sample_training_data
 import numpy as np
 import time
@@ -67,7 +68,7 @@ def namer_gru_c2v():
     char_num = len(char_to_index.keys())
     print char_num
 
-    name_num = 10
+    name_num = 30
     name_len = 3
     # first_name = u"宋"
     # first_name = u"董"
@@ -92,6 +93,27 @@ def namer_gru_c2v():
         print "ignored samples: ", ignore_num
 
 
+def namer_lstm_c2v():
+    # np.random.seed(1)
+    # X_train, y_train, char_to_index, index_to_char = load_training_data()
+    X_train, y_train, char_to_index, index_to_char = load_sample_training_data(1)
+    char_num = len(char_to_index.keys())
+    print char_num
+
+    name_num = 10
+    name_len = 3
+    # first_name = u"宋"
+    # first_name = u"董"
+    first_name = u"陈"
+    if first_name not in char_to_index:
+        print "暂时不支持这个姓，Sorry！！！"
+    else:
+        print "支持这个姓，请稍等 ... ..."
+        model = lstm.LSTM()
+        model.sample_name(first_name=first_name, ckpt_file="model/lstm_c2v/LSTM-2017-01-29-20-00-6569-400-128.ckpt")
+
+
 if __name__ == '__main__':
-    namer_rnn_one_hot()
+    # namer_rnn_one_hot()
     # namer_gru_c2v()
+    namer_lstm_c2v()
